@@ -1,0 +1,331 @@
+db.rent.insert( { 
+
+        kode_rent: 1,
+        kode_ruko: 1,
+        kode_customer: 13,
+        tanggal_mulai : new Date(),
+        tanggal_selesai : null,
+
+} )
+
+db.customer.insert( { 
+
+        kode_customer: "2",
+        nama_customer: "Maulana Hamdani",
+        no_hp_customer : 0812345678
+
+} )
+
+db.customer.remove( { kode_customer: 1 } )
+
+db.customer.update(
+   { kode_customer: "2" },
+   {
+     $set: {
+       nama_customer: "Maulana",
+     }
+   }
+)
+
+
+
+Nurhadi :: 
+
+
+db.penyewaan.aggregate([
+    {$group:{
+        _id: '',
+        per_bulan: {$sum:{$multiply: ["$total_biaya", 1]}}
+    }}
+])
+
+db.penyewaan.aggregate(
+    [
+        {$project: {penghasilanBulanan_perkamar: {$multiply: ["$total_biaya", 1]}}}
+    ]
+)
+
+db.penyewaan.insertOne({
+    _id: "Sewa 5",
+    total_biaya: 600000,
+    tanggal: new Date(),
+    items: [
+        {
+            nomor_kamar: 102,
+            id_penyewa:"P5",
+            profesi: "Mahasiswa"
+        }
+    ]
+});
+
+
+
+test :: 
+
+db.rent.aggregate([
+    {
+
+       $convert:
+      {
+         input: "$harga",
+         to: "int",
+      }
+    },
+    {
+
+      $group:
+      {
+        _id: '', pendapatan_bulanan: 
+        {
+          $sum:
+          {
+            $multiply: ["$harga", 1]
+          }
+        }
+      }
+    }
+])
+
+db.rent.aggregate([
+    {$group:{
+        _id: '', pendapatan_tahunan: {
+          $sum:{
+            $multiply: ["$harga", 12]
+          }
+        }
+      }
+    }
+])
+
+db.rent.aggregate([
+    {
+      $group:{
+        _id: '', pendapatan_tahunan: {
+          $sum:{
+            $multiply: ["$harga", 12]
+          }
+        }
+      }
+    }
+])
+
+
+db.rent.aggregate([
+    {
+      '$group': {
+        '_id': '',
+        'total': { 
+            '$sum': { 
+                '$convert': { 'input': '$harga', 'to': 'int' }
+            } 
+        }
+    }
+])
+
+
+db.rent.aggregate([
+    {
+      $group:
+      {
+        _id: '',
+        per_bulan: 
+        {
+          $sum:
+          {
+            $multiply: [NumberInt("$harga"), 1]
+          }
+        }
+      } 
+    }
+])
+
+
+
+
+:: Create Database :: 
+use penyewaan_ruko 
+
+
+:: Create Collection :: 
+db.createCollection("customer")
+db.createCollection("rent")
+db.createCollection("ruko")
+
+
+:: CRUD Data :: 
+1. Customer 
+
+Create : 
+db.customer.insert({
+    "kode_customer":"1",
+    "nama_lengkap":"Maulana Hamdani",
+    "alamat_customer":"Cirebon",
+    "no_telp":"0812345679"
+})
+
+db.customer.insert({
+    "kode_customer":"2",
+    "nama_lengkap":"Sapardi",
+    "alamat_customer":"Bali",
+    "no_telp":"0812345677"
+})
+
+
+Read : 
+db.customer.find().pretty()
+
+
+Update : 
+db.customer.update({
+    "kode_customer":"1"},
+    {$set:{"alamat_customer":"Jakarta"}})
+
+Delete: 
+db.customer.remove({
+    "kode_customer":"2"
+})
+
+
+2. Ruko 
+
+Create : 
+
+db.ruko.insert({
+    "kode_ruko":"1",
+    "jenis_ruko":"1",
+    "nama_ruko":"Sumber",
+    "alamat_ruko":"Cirebon", 
+})
+db.ruko.insert({
+    "kode_ruko":"2",
+    "jenis_ruko":"1",
+    "nama_ruko":"Cibiru",
+    "alamat_ruko":"Bandung", 
+})
+
+Read :
+db.ruko.find().pretty()
+
+Update :
+db.ruko.update({
+    "kode_ruko":"1"},
+    {$set:{"nama_ruko":"Tukmudal"}})
+
+Delete : 
+db.ruko.remove({
+    "kode_ruko":"2"
+})
+
+
+3. Rent
+
+Create :
+db.rent.insert({
+    "kode_rent":"1",
+    "kode_ruko":"1",
+    "nama_customer":"Maulana",
+    "harga":"500000",
+    "kode_customer":"6",
+    "tanggal_sewa":"25-12-2021",
+    "tanggal_selesai":"25-12-2021"
+})
+db.rent.insert({
+    "kode_rent":"1",
+    "kode_ruko":"2",
+    "nama_customer":"Hamdani",
+    "harga":"700000",
+    "kode_customer":"7",
+    "tanggal_sewa":"25-10-2021",
+    "tanggal_selesai":"25-11-2022"
+})
+
+Read :
+db.rent.find().pretty()
+
+Update :
+db.rent.update({
+    "nama_customer":"Hamdani"},
+    {$set:{"harga":"1000000"}})
+
+Delete : 
+db.rent.remove({
+    "kode_customer":"A-03"
+})
+
+
+
+
+
+
+:: Rekap :: 
+
+db.rent.aggregate([
+    {$group:{
+        _id: '',
+        per_bulan: {$sum:{$multiply: [{ '$toInt': '$harga' }, 1]}}
+    }}
+])
+
+db.rent.aggregate([
+    {$group:{
+        _id: '',
+        per_tahun: {$sum:{$multiply: [{ '$toInt': '$harga' }, 12]}}
+    }}
+])
+
+db.rent.aggregate([
+    {$group:{
+        _id: '',
+        per_hari: {$sum:{$divide: [{ '$toInt': '$harga' }, 30]}}
+    }}
+])
+
+db.rent.aggregate(
+    [
+        {$project: {per_item_sebulan: {$multiply: [{ '$toInt': '$harga' }, 1]}}}
+    ]
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+db.rent.aggregate([
+    {$group:{
+        _id: '', pendapatan_harian: {
+          $sum:{
+            $divide: ["$harga", 30]
+          }
+        }
+      }
+    }
+])
+
+
+per_bulan: {$sum:{$multiply: [{ '$toInt': '$harga' }, 1]}}
+
+:: Gugel :: 
+
+groupStage = {
+    '$group': {
+        '_id': '',
+        'pendapatan_bulanan': { '$sum': { '$toInt': '$harga' } }
+    }
+};
+
+db.getCollection('rent').aggregate([
+   groupStage
+])
+
+
